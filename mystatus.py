@@ -19,6 +19,8 @@ dirty_up_thresh = 100_000
 dirty_down_thresh = 10_000
 disk_dict = dict()
 
+bad_color = '#FF00AF'
+
 def flush_all(sig, frame):
 	global flush_flag
 	update_modules()
@@ -48,7 +50,7 @@ def module_cpufreq():
 			cpu_usage2 = new2
 		result = {"full_text": "C:" + str(avg_freq) + " " + str(usage_percent) + "%"}
 		if usage_percent > 50:
-			result['color'] = '#FF0000'
+			result['color'] = bad_color
 		mystatus['cpufreq'] = result
 	except FileNotFoundError:
 		pass
@@ -67,7 +69,7 @@ def module_cputemp():
 					temp = new_data
 		result = {"full_text": "T:" + str(temp)}
 		if temp > 85:
-			result['color'] = '#FF0000'
+			result['color'] = bad_color
 		mystatus['cputemp'] = result
 	except OSError:
 		pass
@@ -93,11 +95,11 @@ def module_memory():
 		if dirty > dirty_up_thresh:
 			warn_sig = True
 			dirty_flag = True
-		if a_per < 10:
+		if a_per < 15:
 			warn_sig = True
 		result = {'full_text': full_text}
 		if warn_sig:
-			result['color'] = '#FF0000'
+			result['color'] = bad_color
 		mystatus['memory'] = result
 	except FileNotFoundError:
 		pass
@@ -122,7 +124,7 @@ def module_busydisk():
 	if busy_string:
 		mystatus['busydisk'] = {
 			'full_text': 'BD:' + busy_string[:-1],
-			'color': '#FF0000',
+			'color': bad_color,
 		}
 	disk_dict = new_disk_dict
 
@@ -152,7 +154,7 @@ def module_battery():
 			bat = int(line)
 			result = {"full_text": "B:" + str(bat)}
 			if bat < 10:
-				result['color'] = '#FF0000'
+				result['color'] = bad_color
 			mystatus['battery'] = result
 	except FileNotFoundError:
 		pass

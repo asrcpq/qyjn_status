@@ -15,6 +15,7 @@ sleep_time = 5
 mystatus = dict()
 flush_flag = False
 dirty_flag = False
+comma_flag = False
 dirty_up_thresh = 100_000
 dirty_down_thresh = 10_000
 disk_dict = dict()
@@ -184,10 +185,15 @@ def update_modules():
 		calc_module(module)
 
 def flush_status():
+	global comma_flag
+	if comma_flag:
+		print(',', end = "")
+	else:
+		comma_flag = True
 	print(json.dumps(
 		[mystatus[key] for key in module_list if key in mystatus.keys()],
 		separators = (',', ':'),
-	) + ',', flush = True)
+	), flush = True)
 
 def main_loop():
 	global flush_flag
@@ -201,7 +207,8 @@ def main_loop():
 
 def main():
 	signal.signal(signal.SIGCONT, flush_all)
-	print('{"version":1}[')
+	print('{"version":1}')
+	print('[')
 	update_modules()
 	flush_status()
 	main_loop()

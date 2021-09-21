@@ -20,6 +20,7 @@ dirty_up_thresh = 100_000
 dirty_down_thresh = 10_000
 disk_dict = dict()
 
+load_color = '#FFAF00'
 bad_color = '#FF00AF'
 
 def flush_all(sig, frame):
@@ -51,7 +52,7 @@ def module_cpufreq():
 			cpu_usage2 = new2
 		result = {"full_text": "C:" + str(avg_freq) + " " + str(usage_percent) + "%"}
 		if usage_percent > 50:
-			result['color'] = bad_color
+			result['color'] = load_color
 		mystatus['cpufreq'] = result
 	except FileNotFoundError:
 		pass
@@ -88,19 +89,16 @@ def module_memory():
 		f_per = free * 100 // total
 		a_per = avail * 100 // total
 		full_text = 'M:' + str(f_per) + '/' + str(a_per)
-		warn_sig = False
 		if dirty_flag:
 			full_text += '-' + str(dirty // 1000)
 			if dirty < dirty_down_thresh:
 				dirty_flag = False
 		if dirty > dirty_up_thresh:
-			warn_sig = True
+			result['color'] = load_color
 			dirty_flag = True
 		if a_per < 15:
-			warn_sig = True
-		result = {'full_text': full_text}
-		if warn_sig:
 			result['color'] = bad_color
+		result = {'full_text': full_text}
 		mystatus['memory'] = result
 	except FileNotFoundError:
 		pass
@@ -125,7 +123,7 @@ def module_busydisk():
 	if busy_string:
 		mystatus['busydisk'] = {
 			'full_text': 'BD:' + busy_string[:-1],
-			'color': bad_color,
+			'color': load_color,
 		}
 	disk_dict = new_disk_dict
 

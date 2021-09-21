@@ -88,6 +88,7 @@ def module_memory():
 		dirty = int(re.search(r'^Dirty:\s+(\d+)', meminfo, flags = re.M).groups()[0])
 		f_per = free * 100 // total
 		a_per = avail * 100 // total
+		result = {}
 		full_text = 'M:' + str(f_per) + '/' + str(a_per)
 		if dirty_flag:
 			full_text += '-' + str(dirty // 1000)

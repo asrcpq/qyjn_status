@@ -57,8 +57,8 @@ def module_cpufreq():
 	except FileNotFoundError:
 		pass
 
-def module_cputemp():
-	mystatus.pop('cputemp', None)
+def module_temp():
+	mystatus.pop('temp', None)
 	fn_list = glob.glob('/sys/class/hwmon/hwmon*/temp*_input')
 	if len(fn_list) == 0:
 		return
@@ -72,7 +72,7 @@ def module_cputemp():
 		result = {"full_text": "T:" + str(temp)}
 		if temp > 85:
 			result['color'] = bad_color
-		mystatus['cputemp'] = result
+		mystatus['temp'] = result
 	except OSError:
 		pass
 
@@ -171,7 +171,7 @@ def calc_module(name):
 
 module_list = [
 	'cpufreq',
-	'cputemp',
+	'temp',
 	'memory',
 	'busydisk',
 	'default_gateway',

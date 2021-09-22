@@ -14,7 +14,7 @@ import threading
 from netaddr import IPAddress
 from time import sleep
 
-mystatus = dict()
+qyjn_status = dict()
 dirty_flag = False
 rtx_dict = dict()
 comma_flag = False
@@ -48,9 +48,9 @@ def module_cpufreq():
 		result = {"full_text": "C:" + str(avg_freq) + " " + str(usage_percent) + "%"}
 		if usage_percent > 50:
 			result['color'] = load_color
-		mystatus['cpufreq'] = result
+		qyjn_status['cpufreq'] = result
 	except FileNotFoundError:
-		mystatus.pop('cpufreq', None)
+		qyjn_status.pop('cpufreq', None)
 		pass
 	timer = threading.Timer(3.0, module_cpufreq, None)
 	timer.start()
@@ -69,9 +69,9 @@ def module_temp():
 		result = {"full_text": "T:" + str(temp)}
 		if temp > 85:
 			result['color'] = bad_color
-		mystatus['temp'] = result
+		qyjn_status['temp'] = result
 	except OSError:
-		mystatus.pop('temp', None)
+		qyjn_status.pop('temp', None)
 		pass
 	timer = threading.Timer(3.0, module_temp, None)
 	timer.start()
@@ -99,9 +99,9 @@ def module_memory():
 		if a_per < 15:
 			result['color'] = bad_color
 		result = {'full_text': full_text}
-		mystatus['memory'] = result
+		qyjn_status['memory'] = result
 	except FileNotFoundError:
-		mystatus.pop('memory', None)
+		qyjn_status.pop('memory', None)
 		pass
 	timer = threading.Timer(3.0, module_memory, None)
 	timer.start()
@@ -124,12 +124,12 @@ def module_busydisk():
 		except:
 			pass
 	if busy_string:
-		mystatus['busydisk'] = {
+		qyjn_status['busydisk'] = {
 			'full_text': 'BD:' + busy_string[:-1],
 			'color': load_color,
 		}
 	else:
-		mystatus.pop('busydisk', None)
+		qyjn_status.pop('busydisk', None)
 	disk_dict = new_disk_dict
 	timer = threading.Timer(sleep_time, module_busydisk, None)
 	timer.start()
@@ -157,12 +157,12 @@ def module_busynic():
 				new_rtx_dict[ifname] = [rxbytes, txbytes]
 				line = f.readline()
 			if busy_string:
-				mystatus['busynic'] = {
+				qyjn_status['busynic'] = {
 					'full_text': 'BN:' + busy_string[:-1],
 					'color': load_color,
 				}
 			else:
-				mystatus.pop('busynic', None)
+				qyjn_status.pop('busynic', None)
 	except FileNotFoundError:
 		pass
 	rtx_dict = new_rtx_dict
@@ -192,9 +192,9 @@ def module_default_gateway():
 			result = {"full_text": default_nic + ':' + get_ip_address(default_nic)}
 			if not test_internet():
 				result['color'] = bad_color
-			mystatus['default_gateway'] = result
+			qyjn_status['default_gateway'] = result
 	except FileNotFoundError:
-		mystatus.pop('default_gateway', None)
+		qyjn_status.pop('default_gateway', None)
 		pass
 	timer = threading.Timer(10.0, module_default_gateway, None)
 	timer.start()
@@ -207,9 +207,9 @@ def module_battery():
 			result = {"full_text": "B:" + str(bat)}
 			if bat < 10:
 				result['color'] = bad_color
-			mystatus['battery'] = result
+			qyjn_status['battery'] = result
 	except FileNotFoundError:
-		mystatus.pop('battery', None)
+		qyjn_status.pop('battery', None)
 		pass
 	timer = threading.Timer(10.0, module_battery, None)
 	timer.start()
@@ -244,7 +244,7 @@ def flush_status():
 	else:
 		comma_flag = True
 	print(json.dumps(
-		[mystatus[key] for key in module_list if key in mystatus.keys()],
+		[qyjn_status[key] for key in module_list if key in qyjn_status.keys()],
 		separators = (',', ':'),
 	), flush = True)
 
@@ -257,7 +257,7 @@ def main_loop():
 	dt = round(t) + 1 - t
 	if dt > 1.0 or dt < 0.9:
 		result['color'] = bad_color
-	mystatus['date'] = result
+	qyjn_status['date'] = result
 	flush_status()
 	timer = threading.Timer(dt, main_loop, None)
 	timer.start()

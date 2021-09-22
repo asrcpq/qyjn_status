@@ -1,2 +1,2 @@
 #!/bin/sh
-"$(dirname "$0")"/../mystatus.sh
+"$(dirname "$0")"/../qyjn_status.sh

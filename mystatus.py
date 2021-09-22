@@ -108,7 +108,7 @@ def module_memory():
 
 def module_busydisk():
 	global disk_dict
-	disk_dict = {}
+	new_disk_dict = {}
 	busy_thresh = 0.1 # SSD should have low threshold value
 	busy_string = ""
 	sleep_time = 3.0
@@ -130,11 +130,13 @@ def module_busydisk():
 		}
 	else:
 		mystatus.pop('busydisk', None)
+	disk_dict = new_disk_dict
 	timer = threading.Timer(sleep_time, module_busydisk, None)
 	timer.start()
 
 def module_busynic():
 	global rtx_dict
+	new_rtx_dict = {}
 	sleep_time = 3
 	busy_string = ""
 	try:
@@ -152,7 +154,7 @@ def module_busynic():
 					# 64KiB/s is busy
 					if drx + dtx > 64000 * sleep_time:
 						busy_string += ifname + " "
-				rtx_dict[ifname] = [rxbytes, txbytes]
+				new_rtx_dict[ifname] = [rxbytes, txbytes]
 				line = f.readline()
 			if busy_string:
 				mystatus['busynic'] = {
@@ -163,6 +165,7 @@ def module_busynic():
 				mystatus.pop('busynic', None)
 	except FileNotFoundError:
 		pass
+	rtx_dict = new_rtx_dict
 	timer = threading.Timer(sleep_time, module_busynic, None)
 	timer.start()
 

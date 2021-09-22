@@ -9,12 +9,12 @@ import re
 import signal
 import socket
 import sys
+import threading
 from netaddr import IPAddress
 from time import sleep
 
-sleep_time = 5
+sleep_time = 1
 mystatus = dict()
-flush_flag = False
 dirty_flag = False
 comma_flag = False
 dirty_up_thresh = 100_000
@@ -24,17 +24,10 @@ disk_dict = dict()
 load_color = '#FFAF00'
 bad_color = '#FF00AF'
 
-def flush_all(sig, frame):
-	global flush_flag
-	update_modules()
-	flush_status()
-	flush_flag = True
-
 cpu_usage1 = 0
 cpu_usage2 = 0
 def module_cpufreq():
 	global cpu_usage1, cpu_usage2
-	mystatus.pop('cpufreq', None)
 	try:
 		with open('/proc/cpuinfo', 'r') as f:
 			sum_freq=0
@@ -56,10 +49,12 @@ def module_cpufreq():
 			result['color'] = load_color
 		mystatus['cpufreq'] = result
 	except FileNotFoundError:
+		mystatus.pop('cpufreq', None)
 		pass
+	timer = threading.Timer(3.0, module_cpufreq, None)
+	timer.start()
 
 def module_temp():
-	mystatus.pop('temp', None)
 	fn_list = glob.glob('/sys/class/hwmon/hwmon*/temp*_input')
 	if len(fn_list) == 0:
 		return
@@ -75,11 +70,13 @@ def module_temp():
 			result['color'] = bad_color
 		mystatus['temp'] = result
 	except OSError:
+		mystatus.pop('temp', None)
 		pass
+	timer = threading.Timer(3.0, module_temp, None)
+	timer.start()
 
 def module_memory():
 	global dirty_flag
-	mystatus.pop('memory', None)
 	try:
 		with open('/proc/meminfo', 'r') as f:
 			meminfo = f.read()
@@ -103,12 +100,14 @@ def module_memory():
 		result = {'full_text': full_text}
 		mystatus['memory'] = result
 	except FileNotFoundError:
+		mystatus.pop('memory', None)
 		pass
+	timer = threading.Timer(3.0, module_memory, None)
+	timer.start()
 
 def module_busydisk():
 	global disk_dict
 	new_disk_dict = {}
-	mystatus.pop('busydisk', None)
 	busy_thresh = 0.1 # SSD should have low threshold value
 	busy_string = ""
 	for filename in os.listdir('/sys/block'):
@@ -127,13 +126,17 @@ def module_busydisk():
 			'full_text': 'BD:' + busy_string[:-1],
 			'color': load_color,
 		}
+	else:
+		mystatus.pop('busydisk', None)
 	disk_dict = new_disk_dict
+	timer = threading.Timer(3.0, module_busydisk, None)
+	timer.start()
 
 def get_ip_address(ifname):
 	data = netifaces.ifaddresses(ifname)[2][0]
 	return data['addr'] + '/' + str(IPAddress(data['netmask']).netmask_bits())
 
-def test_internet(host="1.1.1.1", port=53, timeout=0.2):
+def test_internet(host="1.1.1.1", port=53, timeout=1.0):
 	try:
 		socket.setdefaulttimeout(timeout)
 		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
@@ -142,7 +145,6 @@ def test_internet(host="1.1.1.1", port=53, timeout=0.2):
 		return False
 
 def module_default_gateway():
-	mystatus.pop('default_gateway', None)
 	try:
 		with open('/proc/net/route', 'r') as f:
 			route = f.read()
@@ -155,10 +157,12 @@ def module_default_gateway():
 				result['color'] = bad_color
 			mystatus['default_gateway'] = result
 	except FileNotFoundError:
+		mystatus.pop('default_gateway', None)
 		pass
+	timer = threading.Timer(10.0, module_default_gateway, None)
+	timer.start()
 
 def module_battery():
-	mystatus.pop('battery', None)
 	try:
 		with open('/sys/class/power_supply/BAT0/capacity', 'r') as f:
 			line = f.readline()
@@ -168,14 +172,18 @@ def module_battery():
 				result['color'] = bad_color
 			mystatus['battery'] = result
 	except FileNotFoundError:
+		mystatus.pop('battery', None)
 		pass
+	timer = threading.Timer(10.0, module_battery, None)
+	timer.start()
 
 def module_date():
-	mystatus.pop('date', None)
 	now = datetime.datetime.now()
 	date = now.strftime('%m-%d %H:%M:%S')
 	result = {"full_text": date}
 	mystatus['date'] = result
+	timer = threading.Timer(1.0, module_date, None)
+	timer.start()
 
 def calc_module(name):
 	globals().get('module_' + name)()
@@ -206,17 +214,11 @@ def flush_status():
 	), flush = True)
 
 def main_loop():
-	global flush_flag
 	while True:
 		sleep(sleep_time)
-		if flush_flag:
-			flush_flag = False
-			continue
-		update_modules()
 		flush_status()
 
 def main():
-	signal.signal(signal.SIGCONT, flush_all)
 	print('{"version":1}')
 	print('[')
 	update_modules()

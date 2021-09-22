@@ -7,6 +7,7 @@ import netifaces
 import os
 import re
 import signal
+import socket
 import sys
 from netaddr import IPAddress
 from time import sleep
@@ -132,6 +133,14 @@ def get_ip_address(ifname):
 	data = netifaces.ifaddresses(ifname)[2][0]
 	return data['addr'] + '/' + str(IPAddress(data['netmask']).netmask_bits())
 
+def test_internet(host="1.1.1.1", port=53, timeout=0.2):
+	try:
+		socket.setdefaulttimeout(timeout)
+		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+		return True
+	except socket.error as ex:
+		return False
+
 def module_default_gateway():
 	mystatus.pop('default_gateway', None)
 	try:
@@ -142,6 +151,8 @@ def module_default_gateway():
 				return
 			default_nic = default_nic_search.groups()[0]
 			result = {"full_text": default_nic + ':' + get_ip_address(default_nic)}
+			if not test_internet():
+				result['color'] = bad_color
 			mystatus['default_gateway'] = result
 	except FileNotFoundError:
 		pass
@@ -162,7 +173,7 @@ def module_battery():
 def module_date():
 	mystatus.pop('date', None)
 	now = datetime.datetime.now()
-	date = now.strftime('%m-%d %H:%M')
+	date = now.strftime('%m-%d %H:%M:%S')
 	result = {"full_text": date}
 	mystatus['date'] = result
 

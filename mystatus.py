@@ -16,6 +16,7 @@ from time import sleep
 
 mystatus = dict()
 dirty_flag = False
+rtx_dict = dict()
 comma_flag = False
 dirty_up_thresh = 100_000
 dirty_down_thresh = 10_000
@@ -107,7 +108,7 @@ def module_memory():
 
 def module_busydisk():
 	global disk_dict
-	new_disk_dict = {}
+	disk_dict = {}
 	busy_thresh = 0.1 # SSD should have low threshold value
 	busy_string = ""
 	sleep_time = 3.0
@@ -129,8 +130,40 @@ def module_busydisk():
 		}
 	else:
 		mystatus.pop('busydisk', None)
-	disk_dict = new_disk_dict
 	timer = threading.Timer(sleep_time, module_busydisk, None)
+	timer.start()
+
+def module_busynic():
+	global rtx_dict
+	sleep_time = 3
+	busy_string = ""
+	try:
+		with open('/proc/net/dev') as f:
+			f.readline();f.readline()
+			line = f.readline()
+			while line:
+				sp = line.split()
+				ifname = sp[0][:-1]
+				rxbytes = int(sp[1])
+				txbytes = int(sp[9])
+				if ifname in rtx_dict:
+					drx = rxbytes - rtx_dict[ifname][0]
+					dtx = txbytes - rtx_dict[ifname][1]
+					# 64KiB/s is busy
+					if drx + dtx > 64000 * sleep_time:
+						busy_string += ifname + " "
+				rtx_dict[ifname] = [rxbytes, txbytes]
+				line = f.readline()
+			if busy_string:
+				mystatus['busynic'] = {
+					'full_text': 'BN:' + busy_string[:-1],
+					'color': load_color,
+				}
+			else:
+				mystatus.pop('busynic', None)
+	except FileNotFoundError:
+		pass
+	timer = threading.Timer(sleep_time, module_busynic, None)
 	timer.start()
 
 def get_ip_address(ifname):
@@ -191,6 +224,7 @@ module_list = [
 	'temp',
 	'memory',
 	'busydisk',
+	'busynic',
 	'default_gateway',
 	'battery',
 	'date',
@@ -229,7 +263,6 @@ def main():
 	print('{"version":1}')
 	print('[')
 	update_modules()
-	flush_status()
 	main_loop()
 
 if __name__ == '__main__':

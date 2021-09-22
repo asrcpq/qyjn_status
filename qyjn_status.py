@@ -40,12 +40,12 @@ def module_cpufreq():
 			avg_freq = int(sum_freq / sum_core)
 		with open('/proc/stat', 'r') as f:
 			t = [int(i) for i in f.readline().split()[1:]]
-			new1 = t[0] + t[2]
+			new1 = t[0] + t[1] + t[2]
 			new2 = new1 + t[3]
 			usage_percent = (new1 - cpu_usage1) * 100 // (new2 - cpu_usage2)
 			cpu_usage1 = new1
 			cpu_usage2 = new2
-		result = {"full_text": "C:" + str(avg_freq) + " " + str(usage_percent) + "%"}
+		result = {"full_text": f"C:{avg_freq} {usage_percent}%"}
 		if usage_percent > 50:
 			result['color'] = load_color
 		qyjn_status['cpufreq'] = result

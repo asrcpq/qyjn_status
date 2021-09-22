@@ -9,11 +9,11 @@ import re
 import signal
 import socket
 import sys
+import time
 import threading
 from netaddr import IPAddress
 from time import sleep
 
-sleep_time = 1
 mystatus = dict()
 dirty_flag = False
 comma_flag = False
@@ -110,6 +110,7 @@ def module_busydisk():
 	new_disk_dict = {}
 	busy_thresh = 0.1 # SSD should have low threshold value
 	busy_string = ""
+	sleep_time = 3.0
 	for filename in os.listdir('/sys/block'):
 		try:
 			with open('/sys/block/' + filename + '/stat', 'r') as f:
@@ -129,7 +130,7 @@ def module_busydisk():
 	else:
 		mystatus.pop('busydisk', None)
 	disk_dict = new_disk_dict
-	timer = threading.Timer(3.0, module_busydisk, None)
+	timer = threading.Timer(sleep_time, module_busydisk, None)
 	timer.start()
 
 def get_ip_address(ifname):
@@ -177,13 +178,10 @@ def module_battery():
 	timer = threading.Timer(10.0, module_battery, None)
 	timer.start()
 
+# placeholder
+# the real date implementation is in main_loop
 def module_date():
-	now = datetime.datetime.now()
-	date = now.strftime('%m-%d %H:%M:%S')
-	result = {"full_text": date}
-	mystatus['date'] = result
-	timer = threading.Timer(1.0, module_date, None)
-	timer.start()
+	pass
 
 def calc_module(name):
 	globals().get('module_' + name)()
@@ -213,10 +211,19 @@ def flush_status():
 		separators = (',', ':'),
 	), flush = True)
 
+# handle date within main_loop to get precise second
 def main_loop():
-	while True:
-		sleep(sleep_time)
-		flush_status()
+	now = datetime.datetime.now()
+	date = now.strftime('%m-%d %H:%M:%S')
+	result = {"full_text": date}
+	t = now.timestamp()
+	dt = round(t) + 1 - t
+	if dt > 1.0 or dt < 0.9:
+		result['color'] = bad_color
+	mystatus['date'] = result
+	flush_status()
+	timer = threading.Timer(dt, main_loop, None)
+	timer.start()
 
 def main():
 	print('{"version":1}')

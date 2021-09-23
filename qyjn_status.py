@@ -182,6 +182,7 @@ def test_internet(host="1.1.1.1", port=53, timeout=1.0):
 		return False
 
 def module_default_gateway():
+	sleep_time = 10.0
 	try:
 		with open('/proc/net/route', 'r') as f:
 			route = f.read()
@@ -192,11 +193,12 @@ def module_default_gateway():
 			result = {"full_text": default_nic + ':' + get_ip_address(default_nic)}
 			if not test_internet():
 				result['color'] = bad_color
+				sleep_time = 2.0
 			qyjn_status['default_gateway'] = result
 	except FileNotFoundError:
 		qyjn_status.pop('default_gateway', None)
 		pass
-	timer = threading.Timer(10.0, module_default_gateway, None)
+	timer = threading.Timer(sleep_time, module_default_gateway, None)
 	timer.start()
 
 def module_battery():

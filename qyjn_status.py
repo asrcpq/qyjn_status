@@ -22,7 +22,7 @@ dirty_up_thresh = 100_000
 dirty_down_thresh = 10_000
 disk_dict = dict()
 
-load_color = '#FFAF00'
+load_color = '#00FFAF'
 bad_color = '#FF00AF'
 
 cpu_usage1 = 0

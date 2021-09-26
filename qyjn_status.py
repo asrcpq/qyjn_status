@@ -59,20 +59,22 @@ def module_temp():
 	fn_list = glob.glob('/sys/class/hwmon/hwmon*/temp*_input')
 	if len(fn_list) == 0:
 		return
-	temp = -274
-	try:
-		for filename in fn_list:
+	temp = None
+	for filename in fn_list:
+		try:
 			with open(filename) as f:
 				new_data = int(f.readline()) // 1000
-				if new_data > temp:
+				if temp is None or new_data > temp:
 					temp = new_data
+		except OSError:
+			pass
+	if temp is not None:
 		result = {"full_text": "T:" + str(temp)}
 		if temp > 85:
 			result['color'] = bad_color
 		qyjn_status['temp'] = result
-	except OSError:
+	else:
 		qyjn_status.pop('temp', None)
-		pass
 	timer = threading.Timer(3.0, module_temp, None)
 	timer.start()
 

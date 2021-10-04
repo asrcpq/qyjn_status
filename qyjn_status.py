@@ -223,9 +223,6 @@ def module_battery():
 def module_date():
 	pass
 
-def calc_module(name):
-	globals().get('module_' + name)()
-
 module_list = [
 	'cpufreq',
 	'temp',
@@ -236,10 +233,6 @@ module_list = [
 	'battery',
 	'date',
 ]
-
-def update_modules():
-	for module in module_list:
-		calc_module(module)
 
 def flush_status():
 	global comma_flag
@@ -269,7 +262,8 @@ def main_loop():
 def main():
 	print('{"version":1}')
 	print('[')
-	update_modules()
+	for module in module_list:
+		globals().get('module_' + module)()
 	main_loop()
 
 if __name__ == '__main__':

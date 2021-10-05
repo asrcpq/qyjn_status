@@ -25,10 +25,15 @@ disk_dict = dict()
 load_color = '#00FFAF'
 bad_color = '#FF00AF'
 
+def sleep_call(interval, callback):
+	timer = threading.Timer(interval, callback, None)
+	timer.start()
+
 cpu_usage1 = 0
 cpu_usage2 = 0
+usage_percent = "-1"
 def module_cpufreq():
-	global cpu_usage1, cpu_usage2
+	global cpu_usage1, cpu_usage2, usage_percent
 	try:
 		with open('/proc/cpuinfo', 'r') as f:
 			sum_freq=0
@@ -42,9 +47,10 @@ def module_cpufreq():
 			t = [int(i) for i in f.readline().split()[1:]]
 			new1 = t[0] + t[1] + t[2]
 			new2 = new1 + t[3]
-			usage_percent = (new1 - cpu_usage1) * 100 // (new2 - cpu_usage2)
-			cpu_usage1 = new1
-			cpu_usage2 = new2
+			if new2 > cpu_usage2:
+				usage_percent = (new1 - cpu_usage1) * 100 // (new2 - cpu_usage2)
+				cpu_usage1 = new1
+				cpu_usage2 = new2
 		result = {"full_text": f"C:{avg_freq} {usage_percent}%"}
 		if usage_percent > 50:
 			result['color'] = load_color
@@ -52,8 +58,7 @@ def module_cpufreq():
 	except FileNotFoundError:
 		qyjn_status.pop('cpufreq', None)
 		pass
-	timer = threading.Timer(3.0, module_cpufreq, None)
-	timer.start()
+	sleep_call(3.0, module_cpufreq)
 
 def module_temp():
 	fn_list = glob.glob('/sys/class/hwmon/hwmon*/temp*_input')
@@ -75,8 +80,7 @@ def module_temp():
 		qyjn_status['temp'] = result
 	else:
 		qyjn_status.pop('temp', None)
-	timer = threading.Timer(3.0, module_temp, None)
-	timer.start()
+	sleep_call(3.0, module_temp)
 
 def module_memory():
 	global dirty_flag
@@ -105,8 +109,7 @@ def module_memory():
 	except FileNotFoundError:
 		qyjn_status.pop('memory', None)
 		pass
-	timer = threading.Timer(3.0, module_memory, None)
-	timer.start()
+	sleep_call(3.0, module_memory)
 
 def module_busydisk():
 	global disk_dict
@@ -133,13 +136,12 @@ def module_busydisk():
 	else:
 		qyjn_status.pop('busydisk', None)
 	disk_dict = new_disk_dict
-	timer = threading.Timer(sleep_time, module_busydisk, None)
-	timer.start()
+	sleep_call(sleep_time, module_busydisk)
 
 def module_busynic():
 	global rtx_dict
 	new_rtx_dict = {}
-	sleep_time = 3
+	sleep_time = 3.0
 	busy_string = ""
 	try:
 		with open('/proc/net/dev') as f:
@@ -168,8 +170,7 @@ def module_busynic():
 	except FileNotFoundError:
 		pass
 	rtx_dict = new_rtx_dict
-	timer = threading.Timer(sleep_time, module_busynic, None)
-	timer.start()
+	sleep_call(sleep_time, module_busynic)
 
 def get_ip_address(ifname):
 	data = netifaces.ifaddresses(ifname)[2][0]
@@ -200,8 +201,7 @@ def module_default_gateway():
 	except FileNotFoundError:
 		qyjn_status.pop('default_gateway', None)
 		pass
-	timer = threading.Timer(sleep_time, module_default_gateway, None)
-	timer.start()
+	sleep_call(sleep_time, module_default_gateway)
 
 def module_battery():
 	try:
@@ -215,8 +215,7 @@ def module_battery():
 	except FileNotFoundError:
 		qyjn_status.pop('battery', None)
 		pass
-	timer = threading.Timer(10.0, module_battery, None)
-	timer.start()
+	sleep_call(10, module_battery)
 
 # placeholder
 # the real date implementation is in main_loop

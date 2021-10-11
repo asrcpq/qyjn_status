@@ -176,7 +176,7 @@ def get_ip_address(ifname):
 	data = netifaces.ifaddresses(ifname)[2][0]
 	return data['addr'] + '/' + str(IPAddress(data['netmask']).netmask_bits())
 
-def test_internet(host="1.1.1.1", port=53, timeout=1.0):
+def test_internet(host="google.com", port=80, timeout=1.0):
 	try:
 		socket.setdefaulttimeout(timeout)
 		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))

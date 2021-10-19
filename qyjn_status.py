@@ -10,7 +10,7 @@ import signal
 import socket
 import sys
 import time
-import threading
+from threading import Thread
 from netaddr import IPAddress
 from time import sleep
 
@@ -25,9 +25,15 @@ disk_dict = dict()
 load_color = '#00FFAF'
 bad_color = '#FF00AF'
 
-def sleep_call(interval, callback):
-	timer = threading.Timer(interval, callback, None)
-	timer.start()
+class qyjn_module():
+	def __init__(self, caller):
+		self.caller = caller
+	def run(self):
+		while True:
+			sleeptime = self.caller()
+			if sleeptime < 0:
+				return
+			sleep(sleeptime)
 
 cpu_usage1 = 0
 cpu_usage2 = 0
@@ -58,12 +64,12 @@ def module_cpufreq():
 	except FileNotFoundError:
 		qyjn_status.pop('cpufreq', None)
 		pass
-	sleep_call(3.0, module_cpufreq)
+	return 3.0
 
 def module_temp():
 	fn_list = glob.glob('/sys/class/hwmon/hwmon*/temp*_input')
 	if len(fn_list) == 0:
-		return
+		return -1
 	temp = None
 	for filename in fn_list:
 		try:
@@ -80,7 +86,7 @@ def module_temp():
 		qyjn_status['temp'] = result
 	else:
 		qyjn_status.pop('temp', None)
-	sleep_call(3.0, module_temp)
+	return 3.0
 
 def module_memory():
 	global dirty_flag
@@ -109,7 +115,7 @@ def module_memory():
 	except FileNotFoundError:
 		qyjn_status.pop('memory', None)
 		pass
-	sleep_call(3.0, module_memory)
+	return 3.0
 
 def module_busydisk():
 	global disk_dict
@@ -136,7 +142,7 @@ def module_busydisk():
 	else:
 		qyjn_status.pop('busydisk', None)
 	disk_dict = new_disk_dict
-	sleep_call(sleep_time, module_busydisk)
+	return sleep_time
 
 def module_busynic():
 	global rtx_dict
@@ -170,7 +176,7 @@ def module_busynic():
 	except FileNotFoundError:
 		pass
 	rtx_dict = new_rtx_dict
-	sleep_call(sleep_time, module_busynic)
+	return sleep_time
 
 def get_ip_address(ifname):
 	data = netifaces.ifaddresses(ifname)[2][0]
@@ -201,7 +207,7 @@ def module_default_gateway():
 	except FileNotFoundError:
 		qyjn_status.pop('default_gateway', None)
 		pass
-	sleep_call(sleep_time, module_default_gateway)
+	return sleep_time
 
 def module_battery():
 	try:
@@ -215,12 +221,12 @@ def module_battery():
 	except FileNotFoundError:
 		qyjn_status.pop('battery', None)
 		pass
-	sleep_call(10, module_battery)
+	return 10
 
 # placeholder
 # the real date implementation is in main_loop
 def module_date():
-	pass
+	return -1
 
 module_list = [
 	'cpufreq',
@@ -246,23 +252,25 @@ def flush_status():
 
 # handle date within main_loop to get precise second
 def main_loop():
-	now = datetime.datetime.now()
-	date = now.strftime('%m-%d %H:%M:%S')
-	result = {"full_text": date}
-	t = now.timestamp()
-	dt = round(t) + 1 - t
-	if dt > 1.0 or dt < 0.9:
-		result['color'] = bad_color
-	qyjn_status['date'] = result
-	flush_status()
-	timer = threading.Timer(dt, main_loop, None)
-	timer.start()
+	while True:
+		now = datetime.datetime.now()
+		date = now.strftime('%m-%d %H:%M:%S')
+		result = {"full_text": date}
+		t = now.timestamp()
+		dt = round(t) + 1 - t
+		if dt > 1.0 or dt < 0.9:
+			result['color'] = bad_color
+		qyjn_status['date'] = result
+		flush_status()
+		sleep(dt)
 
 def main():
 	print('{"version":1}')
 	print('[')
 	for module in module_list:
-		globals().get('module_' + module)()
+		tmp_module = qyjn_module(globals().get('module_' + module))
+		thread = Thread(target = tmp_module.run)
+		thread.start()
 	main_loop()
 
 if __name__ == '__main__':

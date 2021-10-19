@@ -1,13 +1,9 @@
 import qyjn_status
 from timeit import timeit
 
-def sleep_call_dummy(interval, callback):
-	pass
-
 def test_internet_dummy(host="1.1.1.1", port=53, timeout=1.0):
 	return True
 
-qyjn_status.sleep_call = sleep_call_dummy
 qyjn_status.test_internet = test_internet_dummy
 
 module_list = [

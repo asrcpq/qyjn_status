@@ -42,13 +42,11 @@ def module_cpufreq():
 	global cpu_usage1, cpu_usage2, usage_percent
 	try:
 		with open('/proc/cpuinfo', 'r') as f:
-			sum_freq=0
-			sum_core=0
+			max_freq = 0
 			for line in f:
 				if "MHz" in line:
-					sum_freq += float(re.search(r'[0-9]*\.[0-9]*', line).group())
-					sum_core += 1
-			avg_freq = int(sum_freq / sum_core)
+					freq = float(re.search(r'[0-9]*\.[0-9]*', line).group())
+					max_freq = max(max_freq, freq)
 		with open('/proc/stat', 'r') as f:
 			t = [int(i) for i in f.readline().split()[1:]]
 			new1 = t[0] + t[1] + t[2]
@@ -57,7 +55,7 @@ def module_cpufreq():
 				usage_percent = (new1 - cpu_usage1) * 100 // (new2 - cpu_usage2)
 				cpu_usage1 = new1
 				cpu_usage2 = new2
-		result = {"full_text": f"C:{avg_freq} {usage_percent}%"}
+		result = {"full_text": f"C:{max_freq:.0f} {usage_percent}%"}
 		if usage_percent > 50:
 			result['color'] = load_color
 		qyjn_status['cpufreq'] = result

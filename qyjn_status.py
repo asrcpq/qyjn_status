@@ -195,7 +195,7 @@ def module_default_gateway():
 			route = f.read()
 			default_nic_search = re.search(r'^([^\t]*)\t0{8}\t[^\t]*', route, flags = re.M)
 			if not default_nic_search:
-				return
+				return sleep_time
 			default_nic = default_nic_search.groups()[0]
 			result = {"full_text": default_nic + ':' + get_ip_address(default_nic)}
 			if not test_internet():

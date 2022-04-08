@@ -238,9 +238,9 @@ def module_eyecare():
 		return 10
 	data = int(data)
 	result = {"full_text": "E:" + str(data)}
-	if data > 3600:
+	if data > 15000:
 		result['color'] = load_color
-	if data > 7200:
+	if data > 30000:
 		result['color'] = bad_color
 	qyjn_status['eyecare'] = result
 	return 10

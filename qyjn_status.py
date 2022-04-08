@@ -6,7 +6,6 @@ import json
 import netifaces
 import os
 import re
-import signal
 import socket
 import sys
 import time
@@ -21,6 +20,11 @@ comma_flag = False
 dirty_up_thresh = 100_000
 dirty_down_thresh = 10_000
 disk_dict = dict()
+if os.path.exists("eyecare.txt"):
+	with open("eyecare.txt") as f:
+		score = float(f.read())
+else:
+	score = 0.0
 
 load_color = '#00FFAF'
 bad_color = '#FF00AF'
@@ -221,6 +225,26 @@ def module_battery():
 		pass
 	return 10
 
+def module_eyecare():
+	qyjn_status.pop('eyecare', None)
+	try:
+		with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+			s.connect(f"{os.environ['XDG_DATA_HOME']}/eyecare/eyecare.sock")
+			s.settimeout(0.1)
+			s.send("get score\n".encode())
+			data = s.recv(1024).decode("utf-8")
+	except Exception as e:
+		print(e, file = sys.stderr)
+		return 10
+	data = int(data)
+	result = {"full_text": "E:" + str(data)}
+	if data > 3600:
+		result['color'] = load_color
+	if data > 7200:
+		result['color'] = bad_color
+	qyjn_status['eyecare'] = result
+	return 10
+
 # placeholder
 # the real date implementation is in main_loop
 def module_date():
@@ -234,6 +258,7 @@ module_list = [
 	'busynic',
 	'default_gateway',
 	'battery',
+	'eyecare',
 	'date',
 ]
 

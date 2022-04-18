@@ -9,6 +9,7 @@ import re
 import socket
 import sys
 import time
+from glob import glob
 from threading import Thread
 from netaddr import IPAddress
 from time import sleep
@@ -238,12 +239,21 @@ def module_eyecare():
 		return 10
 	data = int(data)
 	result = {"full_text": "E:" + str(data)}
-	if data > 15000:
+	if data > 3600:
 		result['color'] = load_color
-	if data > 30000:
+	if data > 7200:
 		result['color'] = bad_color
 	qyjn_status['eyecare'] = result
 	return 10
+
+def module_mail():
+	qyjn_status.pop('mail', None)
+	data = len(glob(os.environ["HOME"] + "/xdg/mail/*/*/new/*"))
+	if data > 0:
+		result = {"full_text": "M:" + str(data)}
+		result['color'] = load_color
+		qyjn_status['mail'] = result
+	return 30
 
 # placeholder
 # the real date implementation is in main_loop
@@ -259,6 +269,7 @@ module_list = [
 	'default_gateway',
 	'battery',
 	'eyecare',
+	'mail',
 	'date',
 ]
 

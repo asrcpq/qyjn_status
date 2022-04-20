@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import datetime
-import glob
 import json
 import netifaces
 import os
@@ -70,7 +69,7 @@ def module_cpufreq():
 	return 3.0
 
 def module_temp():
-	fn_list = glob.glob('/sys/class/hwmon/hwmon*/temp*_input')
+	fn_list = glob('/sys/class/hwmon/hwmon*/temp*_input')
 	if len(fn_list) == 0:
 		return -1
 	temp = None
@@ -248,9 +247,16 @@ def module_eyecare():
 
 def module_mail():
 	qyjn_status.pop('mail', None)
-	data = len(glob(os.environ["HOME"] + "/xdg/mail/*/*/new/*"))
-	if data > 0:
-		result = {"full_text": "M:" + str(data)}
+	prefix = os.environ["HOME"] + "/xdg/mail/"
+	data = []
+	for mailbox in glob(prefix + "*/*"):
+		if len(glob(mailbox + "/new/*")) > 0:
+			if len(data) >= 2:
+				data.append("+")
+				break
+			data.append(mailbox.lstrip(prefix))
+	if len(data) > 0:
+		result = {"full_text": "I:" + " ".join(data)}
 		result['color'] = load_color
 		qyjn_status['mail'] = result
 	return 30

@@ -20,11 +20,6 @@ comma_flag = False
 dirty_up_thresh = 100_000
 dirty_down_thresh = 10_000
 disk_dict = dict()
-if os.path.exists("eyecare.txt"):
-	with open("eyecare.txt") as f:
-		score = float(f.read())
-else:
-	score = 0.0
 
 load_color = '#00FFAF'
 bad_color = '#FF00AF'

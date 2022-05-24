@@ -1,5 +1,5 @@
-import qyjn_status
-from qyjn_status import module_list
+import qyjn
+from qyjn import module_list
 from timeit import timeit
 
 def test_internet_dummy(host="1.1.1.1", port=53, timeout=1.0):

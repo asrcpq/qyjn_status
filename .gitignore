@@ -1,4 +1,5 @@
-/error.log
-/eyecare.txt
+*.log
+*.egg-info
+/dist
 /venv
 __pycache__

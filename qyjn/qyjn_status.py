@@ -2,7 +2,6 @@
 
 import datetime
 import json
-import netifaces
 import os
 import re
 import socket
@@ -10,7 +9,6 @@ import sys
 import time
 from glob import glob
 from threading import Thread
-from netaddr import IPAddress
 from time import sleep
 
 qyjn_status = dict()
@@ -175,10 +173,6 @@ def module_busynic():
 	rtx_dict = new_rtx_dict
 	return sleep_time
 
-def get_ip_address(ifname):
-	data = netifaces.ifaddresses(ifname)[2][0]
-	return data['addr'] + '/' + str(IPAddress(data['netmask']).netmask_bits())
-
 def test_internet(host="google.com", port=80, timeout=1.0):
 	try:
 		socket.setdefaulttimeout(timeout)
@@ -196,7 +190,7 @@ def module_default_gateway():
 			if not default_nic_search:
 				return sleep_time
 			default_nic = default_nic_search.groups()[0]
-			result = {"full_text": default_nic + ':' + get_ip_address(default_nic)}
+			result = {"full_text": default_nic}
 			if not test_internet():
 				result['color'] = bad_color
 				sleep_time = 2.0

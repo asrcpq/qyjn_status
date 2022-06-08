@@ -193,7 +193,7 @@ def module_default_gateway():
 			result = {"full_text": default_nic}
 			if not test_internet():
 				result['color'] = bad_color
-				sleep_time = 2.0
+				sleep_time = 5.0
 			qyjn_status['default_gateway'] = result
 	except FileNotFoundError:
 		qyjn_status.pop('default_gateway', None)

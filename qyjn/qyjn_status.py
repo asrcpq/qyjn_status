@@ -173,7 +173,7 @@ def module_busynic():
 	rtx_dict = new_rtx_dict
 	return sleep_time
 
-def test_internet(host="google.com", port=80, timeout=1.0):
+def test_internet(host="one.one.one.one", port=53, timeout=1.0):
 	try:
 		socket.setdefaulttimeout(timeout)
 		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
@@ -226,7 +226,7 @@ def module_eyecare():
 		print(e, file = sys.stderr)
 		return 10
 	data = int(data)
-	result = {"full_text": "E:" + str(data)}
+	result = {"full_text": f"E:{data // 60}.{data % 60:02}"}
 	if data > 3600:
 		result['color'] = load_color
 	if data > 7200:

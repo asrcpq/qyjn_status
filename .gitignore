@@ -1,5 +1,4 @@
 *.log
 *.egg-info
 /dist
-/venv
 __pycache__

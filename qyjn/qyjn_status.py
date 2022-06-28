@@ -226,10 +226,10 @@ def module_eyecare():
 		print(e, file = sys.stderr)
 		return 10
 	data = int(data)
-	result = {"full_text": f"E:{data // 60}.{data % 60:02}"}
-	if data > 3600:
+	result = {"full_text": f"E:{data // 60}"}
+	if data > 1800:
 		result['color'] = load_color
-	if data > 7200:
+	if data > 3600:
 		result['color'] = bad_color
 	qyjn_status['eyecare'] = result
 	return 10

@@ -19,7 +19,7 @@ dirty_up_thresh = 100_000
 dirty_down_thresh = 10_000
 disk_dict = dict()
 
-load_color = '#00FFAF'
+load_color = '#FFAF00'
 bad_color = '#FF00AF'
 
 class qyjn_module():

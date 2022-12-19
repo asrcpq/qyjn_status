@@ -223,7 +223,7 @@ def module_eyecare():
 			s.send("get score\n".encode())
 			data = s.recv(1024).decode("utf-8")
 	except Exception as e:
-		print(e, file = sys.stderr)
+		# print(e, file = sys.stderr)
 		return 10
 	data = int(data)
 	result = {"full_text": f"E:{data // 60}"}
@@ -233,22 +233,6 @@ def module_eyecare():
 		result['color'] = bad_color
 	qyjn_status['eyecare'] = result
 	return 10
-
-def module_mail():
-	qyjn_status.pop('mail', None)
-	prefix = os.environ["HOME"] + "/xdg/mail/"
-	data = []
-	for mailbox in glob(prefix + "*/*"):
-		if len(glob(mailbox + "/new/*")) > 0:
-			if len(data) >= 2:
-				data.append("+")
-				break
-			data.append(mailbox.lstrip(prefix))
-	if len(data) > 0:
-		result = {"full_text": "I:" + " ".join(data)}
-		result['color'] = load_color
-		qyjn_status['mail'] = result
-	return 30
 
 # placeholder
 # the real date implementation is in main_loop
@@ -264,7 +248,6 @@ module_list = [
 	'default_gateway',
 	'battery',
 	'eyecare',
-	'mail',
 	'date',
 ]
 

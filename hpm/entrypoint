@@ -1,2 +1,3 @@
 #!/bin/sh
-"$(dirname "$0")"/../qyjn/qyjn_status.sh
+cd "$(dirname "$0")/.."
+python3 qyjn_status.py 2>error.log

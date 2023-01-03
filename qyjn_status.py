@@ -218,7 +218,7 @@ def module_eyecare():
 	qyjn_status.pop('eyecare', None)
 	try:
 		with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
-			s.connect(f"{os.environ['XDG_DATA_HOME']}/eyecare/eyecare.sock")
+			s.connect(f"{os.environ['XDG_RUNTIME_DIR']}/eyecare.sock")
 			s.settimeout(0.1)
 			s.send("get score\n".encode())
 			data = s.recv(1024).decode("utf-8")

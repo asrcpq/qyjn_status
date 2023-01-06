@@ -190,7 +190,7 @@ def module_default_gateway():
 		pass
 	return sleep_time
 
-def notify(timeout=1.0):
+def module_notify(timeout=1.0):
 	try:
 		resp = request.urlopen(f"http://localhost:8081/notify", timeout = timeout)
 		string = resp.read().decode("utf-8")
@@ -257,6 +257,7 @@ module_list = [
 	'default_gateway',
 	'battery',
 	'eyecare',
+	'notify',
 	'date',
 ]
 

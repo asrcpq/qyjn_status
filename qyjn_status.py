@@ -10,6 +10,7 @@ import time
 from glob import glob
 from threading import Thread
 from time import sleep
+from urllib import request
 
 qyjn_status = dict()
 dirty_flag = False
@@ -173,14 +174,6 @@ def module_busynic():
 	rtx_dict = new_rtx_dict
 	return sleep_time
 
-def test_internet(host="one.one.one.one", port=53, timeout=1.0):
-	try:
-		socket.setdefaulttimeout(timeout)
-		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-		return True
-	except socket.error as ex:
-		return False
-
 def module_default_gateway():
 	sleep_time = 10.0
 	try:
@@ -191,14 +184,30 @@ def module_default_gateway():
 				return sleep_time
 			default_nic = default_nic_search.groups()[0]
 			result = {"full_text": default_nic}
-			if not test_internet():
-				result['color'] = bad_color
-				sleep_time = 5.0
 			qyjn_status['default_gateway'] = result
 	except FileNotFoundError:
 		qyjn_status.pop('default_gateway', None)
 		pass
 	return sleep_time
+
+def notify(timeout=1.0):
+	try:
+		resp = request.urlopen(f"http://localhost:8081/notify", timeout = timeout)
+		string = resp.read().decode("utf-8")
+	except:
+		qyjn_status["notify"] = {
+			"full_text": "N: " + "NN",
+			"color": bad_color,
+		}
+		return 10.0
+	j = json.loads(string)
+	keys = j.keys()
+	if keys:
+		qyjn_status["notify"] = {
+			"full_text": "N: " + " ".join(keys),
+			"color": load_color
+		}
+	return 10.0
 
 def module_battery():
 	try:

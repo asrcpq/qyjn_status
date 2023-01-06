@@ -191,6 +191,7 @@ def module_default_gateway():
 	return sleep_time
 
 def module_notify(timeout=1.0):
+	qyjn_status.pop("notify", None)
 	try:
 		resp = request.urlopen(f"http://localhost:8081/notify", timeout = timeout)
 		string = resp.read().decode("utf-8")
